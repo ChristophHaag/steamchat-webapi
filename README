@@ -1,0 +1,32 @@
+Chat client written in python that uses the web API.
+
+THIS PROGRAM IS NOT COMPLETED AND DOES NOT DO MUCH YET.
+
+This project helped a bit:
+https://github.com/Jessecar96/SteamBot/blob/master/SteamTrade/SteamWeb.cs
+
+What works:
+* Login
+ * steam guard (cookies are stored so this only needs to be done once)
+ * captcha (when the password was entered wrong too often)
+* Getting the friendlist and displaying it in a GUI
+
+TODO:
+Everything else like
+* Polling the presence status https://api.steampowered.com/ISteamWebUserPresenceOAuth/Poll/.....
+* Actual Chat
+* etc.
+* Clean up
+* Pidgin Plugin (to replace (sometimes) unreliable mobile api based plugin)
+
+Works only on linux so far (probably)
+
+Requirements:
+* python3
+* pyqt5
+* python-xdg (for getting the user data dir to store the cookies)
+* python-crypto (for rsa encrypting the password)
+
+Building:
+pyuic5 steamchat-webapi.ui -o ui_steamchat_webapi.py
+./steamchat.py
