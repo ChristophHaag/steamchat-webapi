@@ -7,7 +7,7 @@ import getpass
 import steam_webapi
 
 #TODO: gui
-my_username = input("Enter username: ").strip().encode("utf-8")
+my_username = input("Enter username: ")
 my_password = getpass.getpass("Enter password: ") #input("Enter password: ").strip()
 
 steam_webapi.login(my_username, my_password)
@@ -15,7 +15,7 @@ steam_webapi.login(my_username, my_password)
 resp = steam_webapi.get_contactlist()
 contacts = {}
 for contact in resp:
-    contacts[contact["m_ulSteamID"]] = contact
+    contacts[contact["m_unAccountID"]] = contact
 
 
 class MainWindow(QMainWindow, ui_steamchat_webapi.Ui_MainWindow):
@@ -32,11 +32,12 @@ for c in contacts.values():
     if "m_strName" in c and c["m_strName"]:
         s += c["m_strName"]
     else:
-        s += c["m_ulSteamID"]
+        s += c["m_unAccountID"]
     if "m_strInGameName" in c and c["m_strInGameName"]:
         s += " (in game: " + c["m_strInGameName"] + ")"
     item = QStandardItem()
     item.setText(s)
+    item.setData(c)
     lmodel.appendRow(item)
 
 form.contactlist.setModel(lmodel)
