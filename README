@@ -29,4 +29,5 @@ Requirements:
 
 Building:
 pyuic5 steamchat-webapi.ui -o ui_steamchat_webapi.py
+pyuic5 steamchat-webapi_chatwindow.ui -o ui_steamchat_webapi_chatwindow.py
 ./steamchat.py

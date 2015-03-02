@@ -9,6 +9,7 @@ from xdg.BaseDirectory import xdg_config_home
 cookiefile = xdg_data_home + "/.steamchatcookie"
 configfile = xdg_config_home + "/.steamchat"
 sessionid = None
+my_id = None
 
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/42.0.2305.3 Chrome/42.0.2305.3 Safari/537.36"
 getrsa_url = "https://steamcommunity.com/login/getrsakey/"
@@ -76,7 +77,7 @@ def encrypt_password(key_mod, key_exp, my_password):
 
 
 def login(my_username, my_password):
-
+    global my_id
     resp = json.loads(http_request(getrsa_url, b"username=" + my_username.encode("utf-8")))
 
     my_id = resp["steamid"]
