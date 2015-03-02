@@ -75,6 +75,8 @@ def encrypt_password(key_mod, key_exp, my_password):
     encrypted_password = base64.b64encode(encrypted_password)
     return encrypted_password
 
+def receive_id():
+    return json.loads(http_request(getrsa_url, b"username=" + my_username.encode("utf-8")))["steamid"]
 
 def login(my_username, my_password):
     global my_id
@@ -145,15 +147,26 @@ def get_chatlog(m_unAccountID):
     # whe the fuck do we need the send the sessionid in a POST request when it is already in the cookie?
     # steam web responds with a 403 if we don't....
     data = b"sessionid=" + urllib.parse.quote_plus(sessionid).encode("utf-8")
-    http_request(chatlog_url + m_unAccountID, data)
-
+    r = http_request(chatlog_url + m_unAccountID, data)
+    return json.loads(r)
 
 def get_contactlist():
     r = http_request("https://steamcommunity.com/chat", None)
     #TODO: fix
-    right = (r.split("}, ["))[1]
-    middle = "[" + (right.split("], [] )"))[0] + "]"
-    return json.loads(middle)
+    try:
+        right = (r.split("}, ["))[1]
+        middle = "[" + (right.split("], [] )"))[0] + "]"
+        contacts = json.loads(middle)
+
+        right = r.split("WebAPI, ")[1]
+        middle = right.split(", [{")[0] #TODO empty list
+        myself = json.loads(middle)
+        myself["is_self"] = True
+
+        contacts.append(myself)
+        return contacts
+    except:
+        return None
 
 load_cookies(cookiefile)
 

@@ -5,6 +5,8 @@ import sys
 import ui_steamchat_webapi
 import getpass
 import steam_webapi
+import datetime
+import time
 
 import ui_steamchat_webapi_chatwindow
 
@@ -21,7 +23,10 @@ if not contactlistreq: # if not, log in and get the contact list again
 contacts = {}
 for contact in contactlistreq:
     contacts[contact["m_unAccountID"]] = contact
-#print("Contacts:\n", contacts)
+
+def format_message(to, timestamp, text):
+    t = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+    return "(" + t + ") " + to + ": " + text
 
 
 class MainWindow(QMainWindow, ui_steamchat_webapi.Ui_MainWindow):
@@ -33,19 +38,33 @@ class MainWindow(QMainWindow, ui_steamchat_webapi.Ui_MainWindow):
 class ChatWindow(QMainWindow, ui_steamchat_webapi_chatwindow.Ui_chatWindow):
     def sendmessage(self, m):
         text = self.messageInput.text()
-        self.historyarea.append("me: " + text)
+        message = format_message(self.contactname, int(time.time()), text)
+        self.historyarea.append(message)
         self.messageInput.clear()
-        print("send", text)
+        print("send", message)
         #TODO: implement API
 
-    def __init__(self, parent=None, contactname = ""):
+    def __init__(self, parent=None, contactname = "", contactid = ""):
         super(ChatWindow, self).__init__(parent)
         self.setupUi(self)
         self.friendnameLabel.setText(self.friendnameLabel.text() + contactname)
         self.setWindowTitle(self.windowTitle() + " - " + contactname)
-
         self.sendButton.clicked.connect(self.sendmessage)
+
+        chatlog = steam_webapi.get_chatlog(contactid)
+        for logentry in sorted(chatlog, key=lambda x: x["m_tsTimestamp"]):
+            contact = logentry["m_unAccountID"]
+            ts = logentry["m_tsTimestamp"]
+            if contact in contacts:
+                cn = contacts[contact]["m_strName"]
+            else:
+                cn = "unknown"
+            message = format_message(cn, ts, logentry["m_strMessage"])
+            self.historyarea.append(message)
+
         self.messageInput.setFocus()
+        self.contactid = contactid
+        self.contactname = cn
 
 
 app = QApplication(sys.argv)
@@ -54,6 +73,7 @@ form = MainWindow()
 lmodel = QStandardItemModel()
 for k in contacts.keys():
     c = contacts[k]
+    if "is_self" in c: continue # don't display ourselves
     s = ""
     if "m_strName" in c and c["m_strName"]:
         s += c["m_strName"]
@@ -73,9 +93,9 @@ def create_chatwindow(itemindex):
     item = lmodel.itemFromIndex(itemindex)
     assert isinstance(item, QStandardItem)
     d = item.data()
-    chatwindow = ChatWindow(parent=form, contactname=d["m_strName"])
+    chatwindow = ChatWindow(parent=form, contactname=d["m_strName"], contactid=str(d["m_unAccountID"]))
     chatwindow.show()
-    print("created chatwindow")
+    #print("created chatwindow")
 
 form.contactlist.doubleClicked.connect(create_chatwindow)
 
