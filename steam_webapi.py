@@ -3,12 +3,14 @@ import os
 import pickle
 import urllib.request
 import http.cookiejar
+from random import randint
 
 from xdg.BaseDirectory import xdg_data_home
 from xdg.BaseDirectory import xdg_config_home
 cookiefile = xdg_data_home + "/.steamchatcookie"
 configfile = xdg_config_home + "/.steamchat"
 sessionid = None
+access_token = None
 my_id = None
 
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/42.0.2305.3 Chrome/42.0.2305.3 Safari/537.36"
@@ -18,9 +20,53 @@ captcha_url = "https://steamcommunity.com/public/captcha.php?gid="
 chatlog_url = "https://steamcommunity.com/chat/chatlog/"
 friendstate_url = "https://steamcommunity.com/chat/friendstate/"
 
+poll_url = "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Poll/v0001/"
+
+# ?jsonp=jQuery111101893273452296853_1425328024276
+# &umqid=6121737257742460091
+# &message=144
+# &pollid=3
+# &sectimeout=20
+# &secidletime=6
+# &use_accountids=1
+# &access_token=c51670e104693efc6765290f9c76a284
+# &_=1425328024282"
+
 cj = http.cookiejar.CookieJar()
 opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
 urllib.request.install_opener(opener)
+
+sentmessagecounter = 0
+pollid = 0
+
+def randintlen(length):
+    #eg length = 10
+    min = "1"
+    max = "9"
+    #len = 1
+
+    #for i in range 0incl,9excl => len = 1+9=10
+    for i in range(length):
+        min += "0"
+        max += "9"
+    return randint(int(min), int(max))
+
+def send_message(to, text):
+    global sentmessagecounter
+    global pollid
+    url = poll_url + "?jsonp=jQuery" + str(randintlen(1)) + "_" + str(randintlen(13))
+    url += "&umqid=" + str(randintlen(19))
+    url += "&message=" + str(sentmessagecounter)
+    url += "&pollid=" + str(pollid)
+    url += "&sectimeout=20"
+    url += "&secidletime=6"
+    url += "&use_accountids=1"
+    url += "&access_token=" #TODO
+    url += ""
+    response = http_request(url, None)
+    sentmessagecounter += 1
+    pollid += 1
+    return response
 
 # returns decoded response
 # and sets session id
@@ -54,6 +100,7 @@ def load_cookies(cookiefile):
     if (os.path.isfile(cookiefile)):
         with open(cookiefile, "rb") as f:
             cj._cookies = pickle.load(f)
+            print (cj._cookies)
             sessionid = getSessionIDfromCookies(cj)
 
 
@@ -75,8 +122,6 @@ def encrypt_password(key_mod, key_exp, my_password):
     encrypted_password = base64.b64encode(encrypted_password)
     return encrypted_password
 
-def receive_id():
-    return json.loads(http_request(getrsa_url, b"username=" + my_username.encode("utf-8")))["steamid"]
 
 def login(my_username, my_password):
     global my_id
