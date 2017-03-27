@@ -83,7 +83,7 @@ def http_request(url, data):
 
     sid = getSessionIDfromCookies(cj) # perhaps we got a new sessionid, who knows
     if sid and not sid == sessionid:
-        print("New sessionid: " + sid)
+        print("New sessionid ") # + sid)
         sessionid = sid
     return r
 
@@ -99,7 +99,7 @@ def load_cookies(cookiefile):
     if (os.path.isfile(cookiefile)):
         with open(cookiefile, "rb") as f:
             cj._cookies = pickle.load(f)
-            print (cj._cookies)
+            #print (cj._cookies)
             sessionid = getSessionIDfromCookies(cj)
 
 
